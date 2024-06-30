@@ -33,8 +33,8 @@ public class WebController {
 	
 	@Scheduled
 	@PostMapping("api/v1/wallet")
-	public DataWallet depositOrWithdraw(String valletId, String operationType, int ammount) throws ErrorHandler {
-		if (valletId == null || operationType == null || ammount == 0) {
+	public DataWallet depositOrWithdraw(String valletId, String operationType, int amount) throws ErrorHandler {
+		if (valletId == null || operationType == null || amount == 0) {
 			throw new ErrorHandler(406, "values cannot be null or 0\n");
 		}
 		UUID uuid = UUID.fromString(valletId);
@@ -46,15 +46,15 @@ public class WebController {
 			
 			newWallet = walletRepo.save(new DataWallet(uuid, OperationType.of(operationType), 0));
 		}
-		if (ammount < 0) {
+		if (amount < 0) {
 			throw new ErrorHandler(406, "Number can't be negative\n");
 		}	
 		if(OperationType.of(operationType) == OperationType.DEPOSIT) {
-			newWallet.setBalance(newWallet.getBalance() + ammount);
+			newWallet.setBalance(newWallet.getBalance() + amount);
 		}
 		else if (OperationType.of(operationType) == OperationType.WITHDRAW) {
-			if (newWallet.getBalance() >= ammount)
-				newWallet.setBalance(newWallet.getBalance() - ammount);
+			if (newWallet.getBalance() >= amount)
+				newWallet.setBalance(newWallet.getBalance() - amount);
 			else {
 				throw new ErrorHandler(406, "Balance doesn't have enough money for withdraw\n");
 			}
