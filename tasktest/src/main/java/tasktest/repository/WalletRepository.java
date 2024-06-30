@@ -9,4 +9,5 @@ import tasktest.model.DataWallet;
 
 @Repository
 public interface WalletRepository extends JpaRepository<DataWallet, UUID> {
+
 }

@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -22,45 +23,59 @@ public class WebController {
 	
 	private final WalletRepository walletRepo;
 	
+	@PostMapping
+	public void getJson(@RequestBody DataWallet wallet) throws ErrorHandler {
+		if (wallet != null) {
+			DataWallet json = wallet;
+		}
+		else throw  new ErrorHandler(406, "Number can't be negative");
+	}
 	
 	@Scheduled
 	@PostMapping("api/v1/wallet")
-	public BaseResponse<DataWallet> depositOrWithdraw(String valletId, String operationType, int ammount) {
+	public DataWallet depositOrWithdraw(String valletId, String operationType, int ammount) throws ErrorHandler {
+		if (valletId == null || operationType == null || ammount == 0) {
+			throw new ErrorHandler(406, "values cannot be null or 0\n");
+		}
 		UUID uuid = UUID.fromString(valletId);
 		DataWallet newWallet;
-		if (ammount < 0) {
-			return new BaseResponse<DataWallet>(406, "number of deposit/withdraw cannot be negative", null);
-		}
 		if(walletRepo.existsById(uuid)) {
 			newWallet = walletRepo.getReferenceById(uuid);
 		}
 		else {
-			newWallet = walletRepo.save(new DataWallet(uuid, operationType, 0));
-		}
 			
-		if(operationType == OperationType.DEPOSIT.toString()) {
+			newWallet = walletRepo.save(new DataWallet(uuid, OperationType.of(operationType), 0));
+		}
+		if (ammount < 0) {
+			throw new ErrorHandler(406, "Number can't be negative\n");
+		}	
+		if(OperationType.of(operationType) == OperationType.DEPOSIT) {
 			newWallet.setBalance(newWallet.getBalance() + ammount);
 		}
-		else if (operationType == OperationType.WITHDRAW.toString()) {
+		else if (OperationType.of(operationType) == OperationType.WITHDRAW) {
 			if (newWallet.getBalance() >= ammount)
 				newWallet.setBalance(newWallet.getBalance() - ammount);
 			else {
-				return new BaseResponse<DataWallet>(406, "Not enough money on your account", null);
+				throw new ErrorHandler(406, "Balance doesn't have enough money for withdraw\n");
 			}
 		}
 		else {
-			
+			throw new ErrorHandler(406, "Operation type isn't right\n");		
 		}
-		BaseResponse<DataWallet> newReq = new BaseResponse<>(200, "Your operation has been finished successfully",new DataWallet(uuid, operationType, ammount));
-		walletRepo.save(newReq.getData());
 		
-		return newReq;
+		walletRepo.save(newWallet);
+		
+		return newWallet;
 	}
 	
 	@Async
 	@GetMapping("api/v1/wallets/{WALLET_UUID}")
-	public BaseResponse<DataWallet> checkBalance(@PathVariable(value = "WALLET_UUID") String valletId){
-		BaseResponse<DataWallet> newReq = new BaseResponse<>(500, "",new DataWallet(valletId));
-		return newReq;
+	public int checkBalance(@PathVariable(value = "WALLET_UUID") String valletId) throws ErrorHandler{
+		UUID uuid = UUID.fromString(valletId);
+		if(walletRepo.getReferenceById(uuid) == null) {
+			throw new ErrorHandler(406, "Operation type isn't right");
+		}
+		DataWallet wallet = walletRepo.getReferenceById(uuid);
+		return wallet.checkBalance(walletRepo, uuid);
 	}
 }

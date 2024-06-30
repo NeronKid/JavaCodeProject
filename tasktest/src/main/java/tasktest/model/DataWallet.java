@@ -2,8 +2,7 @@ package tasktest.model;
 
 import java.util.UUID;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.stereotype.Repository;
+
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,10 +10,12 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import tasktest.repository.WalletRepository;
 
 
 @RequiredArgsConstructor
@@ -33,9 +34,10 @@ public class DataWallet {
 	
 	@Column(name="balance")
     private int balance;
-	
-	public DataWallet(UUID id, String operType, int balance) {
-		
-	}
 
+
+	public int checkBalance(WalletRepository walletRepo, UUID uuid) {
+		DataWallet wallet = walletRepo.getReferenceById(uuid);
+		return wallet.getBalance();
+	}
 }
