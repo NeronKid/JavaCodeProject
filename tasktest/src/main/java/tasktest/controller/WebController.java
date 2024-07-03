@@ -1,5 +1,6 @@
 package tasktest.controller;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,6 @@ public class WebController {
 	
 	private final WalletRepository walletRepo;
 	
-	@Async
 	@PostMapping(value = "api/v1/wallet")
 	public DataWallet depositOrWithdraw(@RequestBody DataRequest data) throws ErrorHandler {
 		if(data.getValletId() == null) {
@@ -36,9 +36,6 @@ public class WebController {
 		if(data.getOperationType() == null) {
 			throw new ErrorHandler(406, "operationType cannot be null");
 		}
-		if (data.getAmount() == 0) {
-		    throw new ErrorHandler(406, "amount cannot be 0");
-		    }
 		if (data.getAmount() <= 0) {
 		    throw new ErrorHandler(406, "amount can't be negative\n");
 		}
@@ -49,9 +46,10 @@ public class WebController {
 		UUID uuid = data.getValletId();
 		DataWallet newWallet;
 		int amount = data.getAmount();
+		Optional<DataWallet> dataUUID = walletRepo.findById(uuid);
 		
-		if(walletRepo.existsById(uuid)) {
-			newWallet = walletRepo.getReferenceById(uuid);
+		if(!dataUUID.isEmpty()) {
+			newWallet = dataUUID.get();
 		}
 		else {
 			
@@ -81,14 +79,13 @@ public class WebController {
 		return newWallet;
 	}
 	
-	@Async
 	@GetMapping("api/v1/wallets/{WALLET_UUID}")
 	public int checkBalance(@PathVariable(value = "WALLET_UUID") String valletId) throws ErrorHandler{
 		UUID uuid = UUID.fromString(valletId);
-		if(walletRepo.getReferenceById(uuid) == null) {
+		Optional<DataWallet> wallet = walletRepo.findById(uuid);
+		if(wallet.isEmpty()) {
 			throw new ErrorHandler(406, "Operation type isn't right");
 		}
-		DataWallet wallet = walletRepo.getReferenceById(uuid);
-		return wallet.checkBalance(walletRepo, uuid);
+		return wallet.get().getBalance();
 	}
 }

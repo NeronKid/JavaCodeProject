@@ -34,9 +34,4 @@ public class DataWallet {
 	@Column(name="balance")
     private int balance;
 
-
-	public int checkBalance(WalletRepository walletRepo, UUID uuid) {
-		DataWallet wallet = walletRepo.getReferenceById(uuid);
-		return wallet.getBalance();
-	}
 }
