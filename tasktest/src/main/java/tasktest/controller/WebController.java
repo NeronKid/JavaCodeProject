@@ -9,10 +9,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import tasktest.model.BaseResponse;
+import tasktest.model.DataRequest;
 import tasktest.model.DataWallet;
 import tasktest.model.OperationType;
 import tasktest.repository.WalletRepository;
@@ -23,44 +27,53 @@ public class WebController {
 	
 	private final WalletRepository walletRepo;
 	
-	@PostMapping
-	public void getJson(@RequestBody DataWallet wallet) throws ErrorHandler {
-		if (wallet != null) {
-			DataWallet json = wallet;
+	@Async
+	@PostMapping(value = "api/v1/wallet")
+	public DataWallet depositOrWithdraw(@RequestBody DataRequest data) throws ErrorHandler {
+		if(data.getValletId() == null) {
+			throw new ErrorHandler(406, "valletId cannot be null");
 		}
-		else throw  new ErrorHandler(406, "Number can't be negative");
-	}
-	
-	@Scheduled
-	@PostMapping("api/v1/wallet")
-	public DataWallet depositOrWithdraw(String valletId, String operationType, int amount) throws ErrorHandler {
-		if (valletId == null || operationType == null || amount == 0) {
-			throw new ErrorHandler(406, "values cannot be null or 0\n");
+		if(data.getOperationType() == null) {
+			throw new ErrorHandler(406, "operationType cannot be null");
 		}
-		UUID uuid = UUID.fromString(valletId);
+		if (data.getAmount() == 0) {
+		    throw new ErrorHandler(406, "amount cannot be 0");
+		    }
+		if (data.getAmount() <= 0) {
+		    throw new ErrorHandler(406, "amount can't be negative\n");
+		}
+		OperationType operation = data.getOperationType();
+		if (operation == null) {
+			throw new ErrorHandler(406, "operation can't be " + data.getOperationType());
+		}
+		UUID uuid = data.getValletId();
 		DataWallet newWallet;
+		int amount = data.getAmount();
+		
 		if(walletRepo.existsById(uuid)) {
 			newWallet = walletRepo.getReferenceById(uuid);
 		}
 		else {
 			
-			newWallet = walletRepo.save(new DataWallet(uuid, OperationType.of(operationType), 0));
+			newWallet = walletRepo.save(new DataWallet(uuid, operation, 0));
 		}
 		if (amount < 0) {
 			throw new ErrorHandler(406, "Number can't be negative\n");
 		}	
-		if(OperationType.of(operationType) == OperationType.DEPOSIT) {
+		switch(operation) {
+		case DEPOSIT: 
 			newWallet.setBalance(newWallet.getBalance() + amount);
-		}
-		else if (OperationType.of(operationType) == OperationType.WITHDRAW) {
-			if (newWallet.getBalance() >= amount)
-				newWallet.setBalance(newWallet.getBalance() - amount);
-			else {
-				throw new ErrorHandler(406, "Balance doesn't have enough money for withdraw\n");
-			}
-		}
-		else {
-			throw new ErrorHandler(406, "Operation type isn't right\n");		
+			break;
+		
+		case WITHDRAW:
+			if (newWallet.getBalance() >= amount) {
+                newWallet.setBalance(newWallet.getBalance() - amount);
+            }
+			else {throw new ErrorHandler(406, "Balance doesn't have enough money for withdraw\n");}
+            break;	
+		
+		default: 
+			throw new ErrorHandler(406, "OperationType isn't WITHDRAW or DEPOSIT");
 		}
 		
 		walletRepo.save(newWallet);

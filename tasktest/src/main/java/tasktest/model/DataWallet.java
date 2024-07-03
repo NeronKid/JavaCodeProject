@@ -26,7 +26,6 @@ import tasktest.repository.WalletRepository;
 public class DataWallet {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.UUID)
     private UUID walletId;
 	
 	@Enumerated(EnumType.STRING)

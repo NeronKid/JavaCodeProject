@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class DataRequest {
 
-    private UUID walletUUID;
+    private UUID valletId;
 	private OperationType operationType;
-    private int ammount;
+    private int amount;
 }
