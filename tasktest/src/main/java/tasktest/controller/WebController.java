@@ -28,6 +28,7 @@ public class WebController {
 	
 	private final WalletRepository walletRepo;
 	
+	@Async
 	@PostMapping(value = "api/v1/wallet")
 	public DataWallet depositOrWithdraw(@RequestBody DataRequest data) throws ErrorHandler {
 		if(data.getValletId() == null) {
@@ -79,6 +80,7 @@ public class WebController {
 		return newWallet;
 	}
 	
+	@Async
 	@GetMapping("api/v1/wallets/{WALLET_UUID}")
 	public int checkBalance(@PathVariable(value = "WALLET_UUID") String valletId) throws ErrorHandler{
 		UUID uuid = UUID.fromString(valletId);
