@@ -1,4 +1,4 @@
-package tasktest.controller;
+package tasktest.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,7 +14,7 @@ import lombok.Setter;
 public class ErrorHandler extends Exception{
 	private int codeError;
 	
-	ErrorHandler (int code, String message){
+	public ErrorHandler (int code, String message){
 		super(message);
 		this.codeError = code;
 	}
