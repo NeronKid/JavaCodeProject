@@ -9,4 +9,6 @@ public interface WebService {
 	public DataWallet walletExistence (DataRequest data) throws ErrorHandler;
 	
 	public boolean walletMistakesCheck (DataRequest data) throws ErrorHandler;
+	
+	public int walletIsEmpty (String walletId) throws ErrorHandler;
 }

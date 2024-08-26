@@ -50,6 +50,8 @@ public class WebServiceImpl implements WebService{
 			throw new ErrorHandler(406, "OperationType isn't WITHDRAW or DEPOSIT");
 		}
 		
+		walletRepo.save(newWallet);
+		
 		return newWallet;
 	}
 	public boolean walletMistakesCheck (DataRequest data) throws ErrorHandler {
@@ -72,4 +74,13 @@ public class WebServiceImpl implements WebService{
 		return false;
 	}
 	
+	public int walletIsEmpty (String walletId) throws ErrorHandler {
+		UUID uuid = UUID.fromString(walletId);
+		Optional<DataWallet> wallet = walletRepo.findById(uuid);
+		if(wallet.isEmpty()) {
+			throw new ErrorHandler(406, "wallet doesn't exist");
+		}
+		return wallet.get().getBalance();
+	}
 }
+
