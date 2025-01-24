@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-@ResponseStatus(code = HttpStatus.NOT_ACCEPTABLE)
+@Deprecated
 public class ErrorHandler extends Exception{
 	private int codeError;
 	

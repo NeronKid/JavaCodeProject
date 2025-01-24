@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import tasktest.exception.ErrorHandler;
+import tasktest.exception.WebServiceException;
 import tasktest.model.DataRequest;
 import tasktest.model.DataWallet;
 import tasktest.model.OperationType;
@@ -17,7 +17,7 @@ public class WebServiceImpl implements WebService{
 	
 	WalletRepository walletRepo;
 	
-	public DataWallet walletExistence (DataRequest data) throws ErrorHandler {
+	public DataWallet walletExistence (DataRequest data) throws WebServiceException {
 		UUID uuid = data.getValletId();
 		DataWallet newWallet;
 		int ammount = data.getAmount();
@@ -30,7 +30,7 @@ public class WebServiceImpl implements WebService{
 			newWallet = walletRepo.save(new DataWallet(uuid, operation, 0));
 		}
 		if (ammount < 0) {
-			throw new ErrorHandler(406, "Number can't be negative\n");
+			throw new WebServiceException("Number can't be negative\n");
 		}	
 		switch(operation) {
 		case DEPOSIT: 
@@ -43,30 +43,30 @@ public class WebServiceImpl implements WebService{
                 newWallet.setBalance(newWallet.getBalance() - ammount);
                 newWallet.setOperationType(operation);
             }
-			else {throw new ErrorHandler(406, "Balance doesn't have enough money for withdraw\n");}
+			else {throw new WebServiceException("Balance doesn't have enough money for withdraw\n");}
             break;	
 		
 		default: 
-			throw new ErrorHandler(406, "OperationType isn't WITHDRAW or DEPOSIT");
+			throw new WebServiceException("OperationType isn't WITHDRAW or DEPOSIT");
 		}
 		
 		walletRepo.save(newWallet);
 		
 		return newWallet;
 	}
-	public boolean walletMistakesCheck (DataRequest data) throws ErrorHandler {
+	public boolean walletMistakesCheck (DataRequest data) throws WebServiceException {
 		if(data.getValletId() == null) {
-			throw new ErrorHandler(406, "valletId cannot be null");
+			throw new WebServiceException("valletId cannot be null");
 		}
 		if(data.getOperationType() == null) {
-			throw new ErrorHandler(406, "operationType cannot be null");
+			throw new WebServiceException("operationType cannot be null");
 		}
 		if (data.getAmount() <= 0) {
-		    throw new ErrorHandler(406, "amount can't be negative\n");
+		    throw new WebServiceException("amount can't be negative\n");
 		}
 		OperationType operation = data.getOperationType();
 		if (operation == null) {
-			throw new ErrorHandler(406, "operation can't be " + data.getOperationType());
+			throw new WebServiceException("operation can't be " + data.getOperationType());
 		}
 		if(walletExistence(data) instanceof DataWallet) {
 			return true;
@@ -74,11 +74,11 @@ public class WebServiceImpl implements WebService{
 		return false;
 	}
 	
-	public int walletIsEmpty (String walletId) throws ErrorHandler {
+	public int walletIsEmpty (String walletId) throws WebServiceException {
 		UUID uuid = UUID.fromString(walletId);
 		Optional<DataWallet> wallet = walletRepo.findById(uuid);
 		if(wallet.isEmpty()) {
-			throw new ErrorHandler(406, "wallet doesn't exist");
+			throw new WebServiceException("wallet doesn't exist");
 		}
 		return wallet.get().getBalance();
 	}
