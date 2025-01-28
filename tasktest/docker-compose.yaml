@@ -1,7 +1,7 @@
 
 services:
   postgresdb:
-    image: postgres
+    image: postgres:16
     restart: unless-stopped
     env_file: ./.env
     healthcheck: 
@@ -11,7 +11,7 @@ services:
      retries: 3
     environment:
       - POSTGRES_USER=$POSTGRESDB_USER
-      - POSTGRES_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
+      - POSTGRES_PASSWORD=$POSTGRESDB_PASSWORD
       - POSTGRES_DB=$POSTGRESDB_DATABASE
     ports:
       - $POSTGRESDB_LOCAL_PORT:$POSTGRESDB_DOCKER_PORT
@@ -23,7 +23,7 @@ services:
     depends_on:
       postgresdb:
         condition: service_healthy
-    command: --url=jdbc:postgresql://postgresdb:5432/postgres?user=postgres&password=NeronKid --changeLogFile=/liquibase/changelog/changelog.yaml update
+    command: --url=jdbc:postgresql://postgresdb:5432/postgres?user=$POSTGRESDB_USER&password=$POSTGRESDB_PASSWORD --changeLogFile=/liquibase/changelog/changelog.yaml update
   app:
     depends_on:
       - postgresdb
@@ -36,7 +36,7 @@ services:
       SPRING_APPLICATION_JSON: '{
         "spring.datasource.url"  : "jdbc:postgresql://postgresdb:$POSTGRESDB_DOCKER_PORT/$POSTGRESDB_DATABASE",
         "spring.datasource.username" : "$POSTGRESDB_USER",
-        "spring.datasource.password" : "$POSTGRESDB_ROOT_PASSWORD",
+        "spring.datasource.password" : "$POSTGRESDB_PASSWORD",
         "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect",
         "spring.jpa.hibernate.ddl-auto" : "update"
         }'
