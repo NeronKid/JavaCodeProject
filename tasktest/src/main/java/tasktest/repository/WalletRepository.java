@@ -12,10 +12,9 @@ import tasktest.model.DataWallet;
 @Repository
 public interface WalletRepository extends JpaRepository<DataWallet, UUID> {
   
-  @Query(value = "insert into wallet (wallet_id, balance, operation_type) " +
-            "  values (:#{#entity.walletId}, :#{#entity.balance}, :#{#entity.operationType}) " + 
-            "  on conflict(wallet_id) do update set foo = coalesce(entity.balance, wallet.balance) " +
-            "    bar = coalesce(entity.operationType, wallet.operation_type) " +
+  @Query(value = "insert into wallet (wallet_id, balance) " +
+            "  values (:#{#entity.walletId}, :#{#entity.balance}) " + 
+            "  on conflict(wallet_id) do update set balance = :#{#entity.balance}" +
             "  returning *", nativeQuery = true)
   DataWallet saveOrUpdate(DataWallet entity);
 }

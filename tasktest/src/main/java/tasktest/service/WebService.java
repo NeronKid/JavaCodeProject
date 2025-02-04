@@ -1,5 +1,8 @@
 package tasktest.service;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 import tasktest.exception.ErrorHandler;
 import tasktest.exception.WebServiceException;
 import tasktest.model.DataRequest;
@@ -11,5 +14,5 @@ public interface WebService {
 	
 	public boolean walletMistakesCheck (DataRequest data) throws WebServiceException;
 	
-	public int walletIsEmpty (String walletId) throws WebServiceException;
+	public CompletableFuture<Integer> walletIsEmpty (String walletId) throws WebServiceException;
 }

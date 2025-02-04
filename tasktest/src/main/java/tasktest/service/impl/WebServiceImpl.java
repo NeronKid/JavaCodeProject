@@ -2,24 +2,34 @@ package tasktest.service.impl;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import tasktest.exception.WebServiceException;
 import tasktest.model.DataRequest;
 import tasktest.model.DataWallet;
 import tasktest.model.OperationType;
+import tasktest.repository.WalletOperationRepository;
 import tasktest.repository.WalletRepository;
 import tasktest.service.WebService;
+import tasktest.model.WalletOperation;
 
 @Service
 public class WebServiceImpl implements WebService{
 	
-	WalletRepository walletRepo;
+	@Autowired
+	private WalletRepository walletRepo;
+	@Autowired
+	private WalletOperationRepository walletOperRepo;
+	
 	
 	public DataWallet walletExistence (DataRequest data) throws WebServiceException {
 		UUID uuid = data.getValletId();
 		DataWallet newWallet;
+		WalletOperation walletOperation;
 		int ammount = data.getAmount();
 		OperationType operation = data.getOperationType();
 		Optional<DataWallet> dataUUID = walletRepo.findById(uuid);
@@ -27,7 +37,7 @@ public class WebServiceImpl implements WebService{
 			newWallet = dataUUID.get();
 		}
 		else {
-			newWallet = walletRepo.save(new DataWallet(uuid, operation, 0));
+			newWallet = walletRepo.save(new DataWallet(uuid, 0));
 		}
 		if (ammount < 0) {
 			throw new WebServiceException("Number can't be negative\n");
@@ -35,13 +45,13 @@ public class WebServiceImpl implements WebService{
 		switch(operation) {
 		case DEPOSIT: 
 			newWallet.setBalance(newWallet.getBalance() + ammount);
-			newWallet.setOperationType(operation);
+			walletOperation = new WalletOperation(uuid, ammount, operation);
 			break;
 		
 		case WITHDRAW:
 			if (newWallet.getBalance() >= ammount) {
                 newWallet.setBalance(newWallet.getBalance() - ammount);
-                newWallet.setOperationType(operation);
+				walletOperation = new WalletOperation(uuid, ammount, operation);
             }
 			else {throw new WebServiceException("Balance doesn't have enough money for withdraw\n");}
             break;	
@@ -51,6 +61,7 @@ public class WebServiceImpl implements WebService{
 		}
 		
 		walletRepo.save(newWallet);
+		walletOperRepo.save(walletOperation);
 		
 		return newWallet;
 	}
@@ -74,13 +85,13 @@ public class WebServiceImpl implements WebService{
 		return false;
 	}
 	
-	public int walletIsEmpty (String walletId) throws WebServiceException {
+	public CompletableFuture<Integer> walletIsEmpty (String walletId) throws WebServiceException {
 		UUID uuid = UUID.fromString(walletId);
 		Optional<DataWallet> wallet = walletRepo.findById(uuid);
 		if(wallet.isEmpty()) {
 			throw new WebServiceException("wallet doesn't exist");
 		}
-		return wallet.get().getBalance();
+		return CompletableFuture.completedFuture(wallet.get().getBalance());
 	}
 }
 

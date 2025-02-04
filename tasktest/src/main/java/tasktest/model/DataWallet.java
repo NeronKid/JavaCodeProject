@@ -26,10 +26,8 @@ import tasktest.repository.WalletRepository;
 public class DataWallet {
 	
 	@Id
+	@Column(name="wallet_id")
     private UUID walletId;
-	
-	@Enumerated(EnumType.STRING)
-	private OperationType operationType;
 	
 	@Column(name="balance")
     private int balance;

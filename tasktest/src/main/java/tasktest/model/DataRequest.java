@@ -3,6 +3,7 @@ package tasktest.model;
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.stereotype.Component;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data
+@Component
 public class DataRequest {
 
     private UUID valletId;
